@@ -2,8 +2,70 @@
 
 set -e
 
+setProxyMode() {
+
+  echo "[INFO] Set Proxy mode...";
+
+  echo "[INFO] Install nginx...";
+  apk add nginx nginx-mod-stream
+  echo "";
+
+  echo "[INFO] Generate nginx configuration...";
+  existHosts="false";
+  servers=""
+  for key in "${!PROXY_HOST_@}"; do
+      declare -n value=$key
+      port="${key/PROXY_HOST_/}"
+      # echo "$port"
+      # echo "$value"
+      existHosts="true";
+
+      host_parts=($(echo "$value" | tr ':' '\n'))
+      servers+="
+      server {
+          listen ${port};
+          proxy_pass ${host_parts[0]}:${host_parts[1]};
+      }
+      "
+  done
+
+  if [ "$existHosts" == "false" ]; then
+    echo "[ERROR!] Cannot find PROXY_HOST_* environment variables!"
+    exit 1
+  fi
+
+  echo "
+  # /etc/nginx/nginx.conf
+  user nginx;
+  worker_processes auto;
+  error_log /var/log/nginx/error.log warn;
+  include /etc/nginx/modules/*.conf;
+
+  events {
+          worker_connections 1024;
+  }
+
+  stream {
+    $servers
+  }" > /etc/nginx/nginx.conf
+  cat /etc/nginx/nginx.conf
+}
+
+runProxy() {
+  if [ "$PROXY_MODE" == "true" ]; then
+    nginx -g "daemon off;error_log /dev/stdout info;"
+  fi
+}
+
+
 up() {
   sleep 5
+
+  if [ "$SET_IP_FORWARD" == "true" ]; then
+    echo "[INFO] Set net.ipv4.ip_forward = 1 ...";
+    echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.conf;
+    sysctl -p /etc/sysctl.conf;
+  fi
 
   tailscale up \
     --accept-dns=${TAILSCALE_ACCEPT_DNS:-true} \
@@ -27,7 +89,11 @@ up() {
 if [ ! -d /dev/net ]; then mkdir /dev/net; fi
 if [ ! -e /dev/net/tun ]; then mknod /dev/net/tun c 10 200; fi
 
-up & tailscaled \
+if [ "$PROXY_MODE" == "true" ]; then
+  setProxyMode
+fi
+
+runProxy & up & tailscaled \
   -port ${TAILSCALED_PORT:-0} \
   -socket ${TAILSCALED_SOCKET:-"/var/run/tailscale/tailscaled.sock"} \
   -state ${TAILSCALED_STATE:-"/var/lib/tailscale/tailscaled.state"} \

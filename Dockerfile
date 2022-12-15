@@ -1,14 +1,13 @@
-FROM alpine:3.15
+FROM alpine:3.17
 
-ARG TARGETARCH
-ARG VERSION=1.32.3
+ARG TARGETARCH=amd64
+ARG VERSION=1.34.1
 
 RUN \
   apk add --no-cache iptables iproute2 ca-certificates bash \
-  && apk add --no-cache --virtual=.install-deps curl tar \
+  && apk add --no-cache curl tar nano htop \
   && curl -sL "https://pkgs.tailscale.com/stable/tailscale_${VERSION}_${TARGETARCH}.tgz" \
-  | tar -zxf - -C /usr/local/bin --strip=1 tailscale_${VERSION}_${TARGETARCH}/tailscaled tailscale_${VERSION}_${TARGETARCH}/tailscale \
-  && apk del .install-deps
+  | tar -zxf - -C /usr/local/bin --strip=1 tailscale_${VERSION}_${TARGETARCH}/tailscaled tailscale_${VERSION}_${TARGETARCH}/tailscale
 
 COPY entrypoint /usr/local/bin/entrypoint
 
