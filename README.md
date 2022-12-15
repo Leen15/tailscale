@@ -29,6 +29,8 @@ docker run -d \
   -e TAILSCALE_AUTH_KEY=<your_auth_key> \
   -e TAILSCALE_ACCEPT_ROUTES=true \
   --privileged \
+  -p 8800:8800 \
+  -p 8801:8801 \
   leen15/tailscale
 ```
 
