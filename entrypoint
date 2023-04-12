@@ -34,6 +34,8 @@ setProxyMode() {
     exit 1
   fi
 
+  [ ! -z "$DNS_SERVER" ] || export DNS_SERVER=$(awk '/nameserver/{a=(a?a" "$2:$2)} END{print a}' /etc/resolv.conf 2> /dev/null)
+
   echo "
   # /etc/nginx/nginx.conf
   user nginx;
@@ -46,6 +48,7 @@ setProxyMode() {
   }
 
   stream {
+    resolver $DNS_SERVER ipv6=off valid=30s;
     $servers
   }" > /etc/nginx/nginx.conf
   cat /etc/nginx/nginx.conf
