@@ -10,6 +10,8 @@ setProxyMode() {
   apk add nginx nginx-mod-stream
   echo "";
 
+  [ ! -z "$DNS_SERVER" ] || export DNS_SERVER=$(awk '/nameserver/{a=(a?a" "$2:$2)} END{print a}' /etc/resolv.conf 2> /dev/null)
+
   echo "[INFO] Generate nginx configuration...";
   existHosts="false";
   servers=""
@@ -23,8 +25,10 @@ setProxyMode() {
       host_parts=($(echo "$value" | tr ':' '\n'))
       servers+="
       server {
+          resolver $DNS_SERVER ipv6=off valid=30s;
           listen ${port};
-          proxy_pass ${host_parts[0]}:${host_parts[1]};
+          set \$server${port} ${host_parts[0]}:${host_parts[1]}
+          proxy_pass \$server${port};
       }
       "
   done
@@ -34,7 +38,6 @@ setProxyMode() {
     exit 1
   fi
 
-  [ ! -z "$DNS_SERVER" ] || export DNS_SERVER=$(awk '/nameserver/{a=(a?a" "$2:$2)} END{print a}' /etc/resolv.conf 2> /dev/null)
 
   echo "
   # /etc/nginx/nginx.conf
@@ -48,7 +51,6 @@ setProxyMode() {
   }
 
   stream {
-    resolver $DNS_SERVER ipv6=off valid=30s;
     $servers
   }" > /etc/nginx/nginx.conf
   cat /etc/nginx/nginx.conf
