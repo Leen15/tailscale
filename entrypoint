@@ -38,7 +38,6 @@ setProxyMode() {
     exit 1
   fi
 
-
   echo "
   # /etc/nginx/nginx.conf
   user nginx;
@@ -61,7 +60,6 @@ runProxy() {
     nginx -g "daemon off;error_log /dev/stdout info;"
   fi
 }
-
 
 up() {
   sleep 5
