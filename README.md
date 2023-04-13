@@ -13,8 +13,9 @@ First of all, if your host doesn't have `net.ipv4.ip_forward` enabled (that is m
 <br/>
 Then, you can active the proxy mode with `PROXY_MODE=true`.<br/>
 The proxy mode will enable a nginx reverse proxy that will expose from this container some of the services that are running inside the tailscale network, that you can specify with some environment variables with this format:<br/>
-```PROXY_HOST_[LOCAL-PORT]=[REMOTE-HOST]:[REMOTE-PORT]```
-
+```PROXY_HOST_[LOCAL-PORT]=[REMOTE-HOST]:[REMOTE-PORT]```<br/>
+The reverse proxy will automatically use tailscale nameserver (100.100.100.100) to resolve the REMOTE HOST. <br/>
+If you want to use a custom namesever you can specify it in the `DNS_SERVER` environment variable.
 
 ### Docker
 
@@ -28,6 +29,7 @@ docker run -d \
   -e TAILSCALE_HOSTNAME=local-client \
   -e TAILSCALE_AUTH_KEY=<your_auth_key> \
   -e TAILSCALE_ACCEPT_ROUTES=true \
+  -e DNS_SERVER=10.43.0.10
   --privileged \
   -p 8800:8800 \
   -p 8801:8801 \
