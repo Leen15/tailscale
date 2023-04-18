@@ -15,7 +15,9 @@ Then, you can active the proxy mode with `PROXY_MODE=true`.<br/>
 The proxy mode will enable a nginx reverse proxy that will expose from this container some of the services that are running inside the tailscale network, that you can specify with some environment variables with this format:<br/>
 ```PROXY_HOST_[LOCAL-PORT]=[REMOTE-HOST]:[REMOTE-PORT]```<br/>
 The reverse proxy will automatically use tailscale nameserver (100.100.100.100) to resolve the REMOTE HOST. <br/>
-If you want to use a custom namesever you can specify it in the `DNS_SERVER` environment variable.
+If you want to use a custom namesever you can specify it in the `DNS_SERVER` environment variable.<br/>
+If you want to use a custom nameserver for a specific host, you can specify it in the same value like:
+```PROXY_HOST_[LOCAL-PORT]=[REMOTE-HOST]:[REMOTE-PORT]:[LOCAL-DNS-SERVER]```<br/>
 
 ### Docker
 
